@@ -1,6 +1,0 @@
-use Test;
-use TinyFloats;
-
-pass "replace me";
-
-done-testing;
