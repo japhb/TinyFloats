@@ -12,7 +12,7 @@ sub check($bin16, $num) {
     my $reduced  = bin16-from-num($num);
     my $expanded = num-from-bin16($bin16);
 
-    diag "Reduced: $reduced.fmt('0x%04x'), Expanded: $expanded.fmt('%.10f')";
+    # diag "Reduced: $reduced.fmt('0x%04x'), Expanded: $expanded.fmt('%.10f')";
     ok $reduced  == $bin16, "Able to reduce $num.fmt('%.10f') to $bin16.fmt('0x%04x')";
     ok $expanded == $num || $expanded.isNaN && $num.isNaN,
                             "Able to expand $bin16.fmt('0x%04x') to $num.fmt('%.10f')";

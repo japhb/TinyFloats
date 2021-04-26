@@ -26,7 +26,9 @@ sub bin16-from-num($num) is export {
     }
     # 32-bit Inf or NaN
     elsif $exp == 0x7F800000 {
-        (($uint +& 0x7FE000) +> 13) +| 0x7C00 +| $sign
+        my $inf-nan = (($uint +& 0x7FE000) +> 13) +| 0x7C00;
+        # Use sign bit for Inf only, not NaN due to Windows incompatibility
+        $inf-nan +& 0x3FF ?? $inf-nan !! $inf-nan +| $sign
     }
     # 16-bit Inf
     else {
