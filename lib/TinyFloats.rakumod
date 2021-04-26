@@ -1,4 +1,4 @@
-unit class TinyFloats:auth<zef:japhb>:api<0>:ver<0.0.1>;
+unit class TinyFloats:auth<zef:japhb>:api<0>:ver<0.0.2>;
 
 
 # * bin16 is storage-only, and represented as a uint16 formatted as IEEE 754 binary16
