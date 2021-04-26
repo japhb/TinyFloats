@@ -1,3 +1,5 @@
+[![Actions Status](https://github.com/japhb/TinyFloats/workflows/test/badge.svg)](https://github.com/japhb/TinyFloats/actions)
+
 NAME
 ====
 
