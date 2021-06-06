@@ -2,6 +2,7 @@ unit class TinyFloats:auth<zef:japhb>:api<0>:ver<0.0.2>;
 
 
 # * bin16 is storage-only, and represented as a uint16 formatted as IEEE 754 binary16
+# * bf16 is storage-only, and represented as a uint16 formatted as Google bfloat16
 # * num is a native float, represented during processing as a uint32 formatted as
 #   IEEE 754 binary32
 
@@ -66,6 +67,19 @@ sub num-from-bin16($bin16) is export {
 }
 
 
+sub bf16-from-num($num) is export {
+    # bf16 is simply IEEE 754 binary32 with the bottom 16 bits chopped off
+    my $bf16 = buf8.write-num32(0, $num).read-uint32(0) +> 16;
+    # Force NaN sign bit off due to Windows incompatibility
+    $bf16 == 0xFFC0 ?? 0x7FC0 !! $bf16
+}
+
+sub num-from-bf16($bf16) is export {
+    # bf16 is simply IEEE 754 binary32 with the bottom 16 bits chopped off
+    buf8.write-uint32(0, $bf16 +< 16).read-num32(0)
+}
+
+
 =begin pod
 
 =head1 NAME
@@ -81,6 +95,9 @@ use TinyFloats;
 my $bin16 = bin16-from-num(1e0);     # 0x3C00
 my $num   = num-from-bin16(0xFBFF);  # -65504e0
 
+my $bf16  = bf16-from-num(1e0);      # 0x3F80
+my $num2  = num-from-bf16(0xFF7F);   # -3.3895313892515355e+38
+
 
 =end code
 
@@ -89,9 +106,23 @@ my $num   = num-from-bin16(0xFBFF);  # -65504e0
 TinyFloats is a collection of simple conversion routines to help with storing
 floating point data in tiny float formats.
 
-This very first version supports only conversion between native nums and the
-IEEE 754 binary16 format, AKA `_Float16` in C, `float16` in CDDL, and `7.25`
-in CBOR.
+This version supports only conversion between native nums and the following
+16-bit floating point storage formats:
+
+=item C<bin16>
+IEEE 754 binary16 format, AKA C<_Float16> in C, C<float16> in CDDL, and
+C<7.25> in CBOR
+
+=item C<bf16>
+Google Brain bfloat16 format (IEEE 754 binary32 with truncated mantissa)
+
+C<bin16> attempts to balance the reduction in exponent and mantissa bits,
+is fairly slow to convert, is used most often in graphics formats, and is
+commonly converted to native binary32 internally by modern graphics hardware.
+
+C<bf16> reduces I<only> the mantissa bits, is relatively quick to convert,
+is used most often in machine learning systems, and is usually used directly
+by the ML hardware.
 
 
 =head1 AUTHOR

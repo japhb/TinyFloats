@@ -1,5 +1,9 @@
 Revision history for TinyFloats
 
+0.0.3  *WIP*
+  - Support for Google Brain bfloat16 format
+
+
 0.0.2  2021-04-26
   - Turn off NaN sign bit when reducing for Windows compatibility
 
