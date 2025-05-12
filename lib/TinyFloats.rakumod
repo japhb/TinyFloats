@@ -104,24 +104,55 @@ my $num2  = num-from-bf16(0xFF7F);   # -3.3895313892515355e+38
 =head1 DESCRIPTION
 
 TinyFloats is a collection of simple conversion routines to help with storing
-floating point data in tiny float formats.
+floating point data in tiny float formats.  Raku B<cannot> compute with these
+shorter formats directly; they must first be converted back to native floating
+point using one of the C<num-from-*> routines.
 
-This version supports only conversion between native nums and the following
-16-bit floating point storage formats:
+This version supports I<only> bidirectional conversion between Raku native
+floating point numbers (C<num>/C<num32>/C<num64>) and the following shorter
+floating point storage formats from this table:
+
+=begin table :caption<Formats and Bit Widths>
+
+Name  | Total | Exponent | Mantissa | Max Val | ±Inf? | NaN? | Notes
+======================================================================================
+num64 |    64 |       11 |       52 | ~2e+308 |   Y   |  Y   | Raku native (= num)
+num32 |    32 |        8 |       23 |  ~3e+38 |   Y   |  Y   | Raku native
+bin16 |    16 |        5 |       10 |   65504 |   Y   |  Y   | IEEE 754 binary16/half
+bf16  |    16 |        8 |        7 |  ~3e+38 |   Y   |  Y   | bfloat16, truncated num32
+
+=end table
+
+More details on the supported formats:
+
+=item C<num64>/C<num>
+
+IEEE 754 C<binary64> ("double precision") format, AKA C<double> in C, C<float64>
+in CDDL, and C<7.27> in CBOR.  Natively handled in Raku; unless specified
+otherwise, all floating point computation in Raku is done in this format.
+
+=item C<num32>
+
+IEEE 754 C<binary32> ("single precision") format, AKA C<float> in C, C<float32>
+in CDDL, and C<7.26> in CBOR.  Natively handled in Raku, but used in Raku
+computations only if specifically requested.  This is also used as an
+intermediate format when expanding the shorter formats using one of the
+C<num-from-*> routines.
 
 =item C<bin16>
-IEEE 754 binary16 format, AKA C<_Float16> in C, C<float16> in CDDL, and
-C<7.25> in CBOR
+
+IEEE 754 C<binary16> ("half precision") format, AKA C<_Float16> in C,
+C<float16> in CDDL, and C<7.25> in CBOR.  C<bin16> attempts to balance the
+reduction in exponent and mantissa bits, is fairly slow to convert, is used
+most often in graphics formats, and is commonly converted to native binary32
+internally by modern graphics hardware.
 
 =item C<bf16>
-Google Brain bfloat16 format (IEEE 754 binary32 with truncated mantissa)
 
-C<bin16> attempts to balance the reduction in exponent and mantissa bits,
-is fairly slow to convert, is used most often in graphics formats, and is
-commonly converted to native binary32 internally by modern graphics hardware.
-
-C<bf16> reduces I<only> the mantissa bits, is relatively quick to convert,
-is used most often in machine learning systems, and is usually used directly
+Google Brain C<bfloat16> format, essentially IEEE 754 C<binary32> ("single
+precision") with the least significant 16 bits truncated from the mantissa.
+C<bf16> reduces I<only> the mantissa bits, is relatively quick to convert, is
+used most often in machine learning systems, and is usually supported directly
 by the ML hardware.
 
 
@@ -131,7 +162,7 @@ Geoffrey Broadwell <gjb@sonic.net>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2021 Geoffrey Broadwell
+Copyright 2021,2025 Geoffrey Broadwell
 
 This library is free software; you can redistribute it and/or modify it under
 the Artistic License 2.0.
