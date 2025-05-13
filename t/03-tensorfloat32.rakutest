@@ -1,0 +1,74 @@
+use v6.d;
+use Test;
+
+use TinyFloats;
+
+plan 46;
+
+
+sub check($tf32, $num) {
+    use Test;
+
+    my $reduced  = tf32-from-num($num);
+    my $expanded = num-from-tf32($tf32);
+
+    # diag "Reduced: $reduced.fmt('0x%05x'), Expanded: $expanded.fmt('%.10f')";
+    ok $reduced  == $tf32, "Able to reduce $num.fmt('%.10f') to $tf32.fmt('0x%05x')";
+    ok $expanded == $num || $expanded.isNaN && $num.isNaN,
+                            "Able to expand $tf32.fmt('0x%05x') to $num.fmt('%.10f')";
+}
+
+
+### Test cases below adapted from bfloat16 and binary16 tests, as TensorFlow-32
+### follows the same "truncated num32" design as bfloat16 except 3 fewer bits
+### truncated, with the same mantissa (and thus precision) as binary16.
+
+# Signed 0
+check 0x00000,  0e0;
+check 0x40000, -0e0;
+
+# Signed Inf
+check 0x3FC00,  Inf;
+check 0x7FC00, -Inf;
+
+# NaN
+check 0x3FE00,  NaN;
+
+# One
+check 0x1FC00,  1e0;
+check 0x5FC00, -1e0;
+
+# One + 1/1024
+check 0x1FC01,  (1e0 + 1/1024);
+check 0x5FC01, -(1e0 + 1/1024);
+
+# One - 1/2048
+check 0x1FBFF,  (1e0 - 1/2048);
+check 0x5FBFF, -(1e0 - 1/2048);
+
+# Two
+check 0x20000,  2e0;
+check 0x60000, -2e0;
+
+# 19-bit max
+check 0x3FBFF,  2047e0 * 2**117;
+check 0x7FBFF, -2047e0 * 2**117;
+
+# 19-bit min
+check 0x00001,  1e0/(2**136);
+check 0x40001, -1e0/(2**136);
+
+# 19-bit 2*min
+check 0x00002,  1e0/(2**135);
+check 0x40002, -1e0/(2**135);
+
+# 19-bit smallest normal
+check 0x00400,  1e0/(2**126);
+check 0x40400, -1e0/(2**126);
+
+# 1/3, rounded to nearest
+check 0x1F555,  .25e0 * (1365/1024);
+check 0x5F555, -.25e0 * (1365/1024);
+
+
+done-testing;
