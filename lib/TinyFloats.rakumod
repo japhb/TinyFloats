@@ -1,4 +1,4 @@
-unit class TinyFloats:auth<zef:japhb>:api<0>:ver<0.0.4>;
+unit class TinyFloats:auth<zef:japhb>:api<0>:ver<0.0.5>;
 
 
 # In all of the following routines $num is a native float, represented during
